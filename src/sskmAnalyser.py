@@ -1,15 +1,17 @@
-import csv
 import sys
 
 from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.QtCore import QObject, pyqtSlot
+from PyQt5.QtCore import QObject, pyqtSlot, QSettings, Qt
 
 from mainwindow import Ui_SSKMAnalyser
-from booking import Booking
+from dataparser import DataParser
 from plotcanvas import PlotCanvas
 
 class MainWindowUIClass(QtWidgets.QMainWindow, Ui_SSKMAnalyser):
     def __init__( self ):        
+        # Configure application settings
+        self.settings = QSettings('Kekmania', 'sskmAnalyser')
+        
         # Call init of super class
         super().__init__()
         self.setupUi(self)
@@ -17,14 +19,44 @@ class MainWindowUIClass(QtWidgets.QMainWindow, Ui_SSKMAnalyser):
     def setupUi(self, mainwindow):
         # Call setup of super class
         super().setupUi(mainwindow)
+        
+        # Get last filename from settings file and fill table
+        lastFile = self.settings.value("lastDataFile")
+        if lastFile is not None:
+            self.fillTableWithDataFromFile(lastFile)
 
-        #m = PlotCanvas(self, width=4, height=3)
-        #m.move(200,0)
+        # Initialize plotting canvas
+        plotCanvas = PlotCanvas(parent=self.plotPlaceholder)
 
-    # slot
+    def fillTableWithDataFromFile(self, fileName):
+        # Parse data into booking class
+        dataParser = DataParser(fileName)
+        bookings = dataParser.GetAllBookings()
+
+        # Show data in UI table
+        self.dataTable.setRowCount(0)
+        for row, booking in enumerate(bookings):
+            self.dataTable.insertRow(row)
+            
+            dateItem = QtWidgets.QTableWidgetItem(booking.date)
+            bookoingTypeItem = QtWidgets.QTableWidgetItem(booking.bookingType)
+            nameItem = QtWidgets.QTableWidgetItem(booking.name)
+            purposeItem = QtWidgets.QTableWidgetItem(booking.purpose)
+            valueItem = QtWidgets.QTableWidgetItem(booking.value)
+            
+            valueItem.setTextAlignment(Qt.AlignRight)
+
+            self.dataTable.setItem(row, 0, dateItem)
+            self.dataTable.setItem(row, 1, bookoingTypeItem)
+            self.dataTable.setItem(row, 2, nameItem)
+            self.dataTable.setItem(row, 3, purposeItem)
+            self.dataTable.setItem(row, 4, valueItem)
+        
+        self.dataTable.resizeColumnsToContents()
+
+    # Slots 
     @QtCore.pyqtSlot()
     def openFileSlot(self):
-        
         # Open file dialog
         options = QtWidgets.QFileDialog.Options()
         options |= QtWidgets.QFileDialog.DontUseNativeDialog
@@ -34,25 +66,12 @@ class MainWindowUIClass(QtWidgets.QMainWindow, Ui_SSKMAnalyser):
                         "",
                         "CSV files (*.csv)",
                         options=options)
-        # Parse file 
-        if fileName:
-            with open(fileName, 'r', encoding='iso8859_16') as csvfile:
-                reader = csv.reader(csvfile, delimiter=';')                
-                
-                for i, row in enumerate(reader):
-                    # Skip first line
-                    if i == 0:
-                        continue
+        
+        # Save filename to application settings for next startup
+        self.settings.setValue("lastDataFile", fileName)
 
-                    booking = Booking(row[1], row[4], row[11], row[14])
-                    totalRows = self.tableWidget.rowCount()
-                    self.tableWidget.insertRow(totalRows)
-                    self.tableWidget.setItem(totalRows-1, 0, QtWidgets.QTableWidgetItem(booking.date))
-                    self.tableWidget.setItem(totalRows-1, 1, QtWidgets.QTableWidgetItem(booking.name))
-                    self.tableWidget.setItem(totalRows-1, 2, QtWidgets.QTableWidgetItem(booking.purpose))
-                    self.tableWidget.setItem(totalRows-1, 3, QtWidgets.QTableWidgetItem(booking.value))
-
-
+        # Actually fill the table
+        self.fillTableWithDataFromFile(fileName)
 
 if __name__ == "__main__":
 

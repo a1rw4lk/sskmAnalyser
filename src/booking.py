@@ -2,10 +2,11 @@
 
 class Booking:
 
-    def __init__(self, date, purpose, name, value):
+    def __init__(self, date, bookingType, name, purpose, value):
         self.date = date
-        self.purpose = purpose
+        self.bookingType = bookingType
         self.name = name
+        self.purpose = purpose
         self.value = value
         self.category = "" 
 

@@ -16,11 +16,8 @@ class PlotCanvas(FigureCanvas):
 
         FigureCanvas.__init__(self, fig)
         self.setParent(parent)
-
-        #FigureCanvas.setSizePolicy(self, QSizePolicy.Expanding, QSizePolicy.Expanding)
+        
         FigureCanvas.updateGeometry(self)
-        self.plot()
-
 
     def plot(self):
         data = [random.random() for i in range(25)]
