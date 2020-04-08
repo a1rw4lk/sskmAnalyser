@@ -1,16 +1,15 @@
-# CURRENTLY UNDER DEVELOPMENT 
+# CURRENTLY UNDER DEVELOPMENT
 
 ## Development tools installation
 ```bash
-sudo python3 -m pip install pyqt5==5.14
-sudo apt-get install pyqt5-dev-tools
-sudo apt-get install qttools5-dev-tools
-qtchooser -run-tool=designer -qt=5
+make setup
 ```
 
 ## Execution
 ```bash
 python3 src/sskmAnalyser.py
+# OR when using virtual env:
+make run-app
 ```
 
 ## Edit a *.ui file
